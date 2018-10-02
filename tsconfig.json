@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+      "target": "es2015",
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "removeComments": false,
+      "noUnusedLocals": true,
+      "noImplicitAny": false,
+      "noImplicitReturns": true,
+      "allowUnusedLabels": false,  
+      "typeRoots": [
+        "node_modules/@types",
+        "./bootstrap/*",
+    ],
+    "baseUrl": ".",
+    "paths": {
+        "@andes/bootstrap/*": [ "./bootstrap/*" ],
+    }
+  }
+}
