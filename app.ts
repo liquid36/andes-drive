@@ -1,6 +1,6 @@
 import { Microservice, MulterMiddleware, Middleware } from './bootstrap';
 import { Connections, FileDescriptor, IFileDescriptor } from './file-descriptor';
-import { FileAdapter, MongoAdapter } from './adapters';
+import { FileAdapter, MongoAdapter, SeaweedAdapter } from './adapters';
 
 import * as mongoose from 'mongoose';
 
@@ -28,7 +28,11 @@ switch (adapterName) {
     case 'mongo':
         _adapter = new MongoAdapter({ connection: mongoose.connection });
         break;
-
+    case 'seaweed':
+        const server = '10.99.0.2';
+        const port = '9333';
+        _adapter = new SeaweedAdapter({ port, server });
+        break;
 }
 
 const upload = MulterMiddleware(_adapter);
@@ -47,7 +51,7 @@ router.group('/drive', (route) => {
     });
 
     /**
-     * Create new file description
+     * Create new file description multi-part upload
      */
 
     route.post('/', upload.single('file'), async (req: any, res, next) => {
@@ -58,7 +62,6 @@ router.group('/drive', (route) => {
                 adapter: file.adapter,
                 originalname: file.originalname,
                 mimetype: file.mimetype
-
             };
             const fd = await FileDescriptor.create(data);
             if (fd) {
@@ -70,12 +73,48 @@ router.group('/drive', (route) => {
         }
     });
 
+    /**
+     * Two-face upload
+     */
+
+    route.post('/assign', async (req: any, res, next) => {
+        try {
+            const body = req.body;
+            const data: IFileDescriptor = {
+                originalname: body.originalname,
+                mimetype: body.mimetype
+            };
+            const fd = await FileDescriptor.create(data);
+            if (fd) {
+                return res.send({ id: fd.uuid });
+            }
+            return next(422);
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    route.put('/:uuid', async (req: any, res, next) => {
+        try {
+            const uuid = req.params.uuid;
+            const real_id = await _adapter.write(req);
+            await FileDescriptor.update(uuid, { real_id, adapter: _adapter.name });
+            return res.json({ status: 'OK' });
+        } catch (err) {
+            return next(err);
+        }
+    });
+
+    /**
+     * GET FILE
+     */
+
     route.get('/:uuid', async (req: any, res, next) => {
         const uuid = req.params.uuid;
-        const token = req.user;
-        if (!token || !token.uuid || token.uuid !== uuid) {
-            return next(403);
-        }
+        // const token = req.user;
+        // if (!token || !token.uuid || token.uuid !== uuid) {
+        //     return next(403);
+        // }
         const fd = await FileDescriptor.find(uuid);
         if (fd) {
             const stream = await _adapter.read(fd.real_id);

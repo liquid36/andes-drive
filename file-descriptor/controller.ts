@@ -13,6 +13,13 @@ export class FileDescriptor {
         return fd.save();
     }
 
+    public static async update(uuid, data) {
+        const fd = await this.find(uuid);
+        fd.real_id = data.real_id;
+        fd.adapter = data.adapter;
+        return fd.save();
+    }
+
     public static async find(id) {
         // [TODO] Add some validation
         const files = await FileDescriptorModel.find({ uuid: id });

@@ -2,8 +2,8 @@ import { Model, model, Document, Schema } from 'mongoose';
 
 export interface IFileDescriptor {
     uuid?: string;
-    adapter: string;
-    real_id: string;
+    adapter?: string;
+    real_id?: string;
     mimetype: string;
     originalname: string;
 }
