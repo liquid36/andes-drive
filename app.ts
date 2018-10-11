@@ -13,6 +13,9 @@ import * as mongoose from 'mongoose';
  * JWT_EXPIRES: tiempo de vencimiento del token generado
  * MONGO_HOST: url para conectarse a mongo
  *
+ * FILE_PATH: Path del FileAdapter
+ * SEAWEED_HOST: Host de seaweedFS
+ * SEAWEED_PORT: Puerto de seaweedFS
  */
 
 Connections.initialize();
@@ -23,14 +26,14 @@ const adapterName = process.env.DEFAULT_ADAPTER || 'file';
 let _adapter;
 switch (adapterName) {
     case 'file':
-        _adapter = new FileAdapter({ folder: './' });
+        _adapter = new FileAdapter({ folder: process.env.FILE_PATH || './' });
         break;
     case 'mongo':
         _adapter = new MongoAdapter({ connection: mongoose.connection });
         break;
     case 'seaweed':
-        const server = '10.99.0.2';
-        const port = '9333';
+        const server = process.env.SEAWEED_HOST || '127.0.0.1';
+        const port = process.env.SEAWEED_PORT || '9333';
         _adapter = new SeaweedAdapter({ port, server });
         break;
 }
@@ -40,7 +43,7 @@ const upload = MulterMiddleware(_adapter);
 const router = ms.router();
 router.group('/drive', (route) => {
 
-    // route.use(Middleware.authenticate());
+    route.use(Middleware.authenticate());
     /**
      * Get simple token
      */
@@ -111,10 +114,10 @@ router.group('/drive', (route) => {
 
     route.get('/:uuid', async (req: any, res, next) => {
         const uuid = req.params.uuid;
-        // const token = req.user;
-        // if (!token || !token.uuid || token.uuid !== uuid) {
-        //     return next(403);
-        // }
+        const token = req.user;
+        if (!token || !token.uuid || token.uuid !== uuid) {
+            return next(403);
+        }
         const fd = await FileDescriptor.find(uuid);
         if (fd) {
             const stream = await _adapter.read(fd.real_id);
