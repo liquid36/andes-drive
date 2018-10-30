@@ -48,8 +48,8 @@ router.group('/drive', (route) => {
      * Get simple token
      */
     route.post('/token', (req, res, next) => {
-        const uuid = req.query.uuid;
-        const token = ms.token(uuid);
+        // const uuid = req.query.uuid;
+        const token = ms.token('null');
         res.send({ token });
     });
 
@@ -114,10 +114,10 @@ router.group('/drive', (route) => {
 
     route.get('/:uuid', async (req: any, res, next) => {
         const uuid = req.params.uuid;
-        const token = req.user;
-        if (!token || !token.uuid || token.uuid !== uuid) {
-            return next(403);
-        }
+        // const token = req.user;
+        // if (!token || !token.uuid || token.uuid !== uuid) {
+        //     return next(403);
+        // }
         const fd = await FileDescriptor.find(uuid);
         if (fd) {
             const stream = await _adapter.read(fd.real_id);
