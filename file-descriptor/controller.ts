@@ -1,5 +1,5 @@
 import { FileDescriptorModel } from './schemas';
-const uuidv1 = require('uuid/v1');
+const ObjectID = require('bson-objectid');
 
 export class FileDescriptor {
     constructor () {
@@ -9,7 +9,7 @@ export class FileDescriptor {
     public static async create(data) {
         // [TODO] Add some validation
         const fd = new FileDescriptorModel(data);
-        fd.uuid = uuidv1();
+        fd.uuid = ObjectID();
         return fd.save();
     }
 
