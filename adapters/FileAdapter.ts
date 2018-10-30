@@ -1,7 +1,7 @@
 import { IAdapter } from './IAdapter.interface';
 const fs = require('fs');
 const path = require('path');
-const uuidv1 = require('uuid/v1');
+const ObjectID = require('bson-objectid');
 
 export class FileAdapter implements IAdapter {
     public name = 'file-adapter';
@@ -16,7 +16,7 @@ export class FileAdapter implements IAdapter {
 
     write (stream: NodeJS.WriteStream): Promise<string> {
         return new Promise((resolve, reject) => {
-            const id = uuidv1();
+            const id = ObjectID();
             const p = this.folderName(id);
             const file = fs.createWriteStream(p);
             stream.pipe(file);
